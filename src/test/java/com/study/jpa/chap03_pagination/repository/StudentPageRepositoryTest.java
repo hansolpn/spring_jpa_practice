@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,15 +31,15 @@ class StudentPageRepositoryTest {
     @BeforeEach
     void buckInsert() {
         // 학생을 147명 저장
-        for (int i = 1; i <= 147; i++) {
+        /*for (int i = 1; i <= 147; i++) {
             Student s = Student.builder()
                     .name("김테스트" + i)
                     .city("도시시" + i)
                     .major("전공공" + i)
                     .build();
 
-            //pageRepository.save(s);
-        }
+            pageRepository.save(s);
+        }*/
     }
     
     @Test
@@ -50,7 +51,13 @@ class StudentPageRepositoryTest {
 
         // 페이지 정보 생성
         // 페이지 번호가 zero-based -> 0이 1페이지
-        Pageable pageInfo = PageRequest.of(pageNo - 1, amount);
+        Pageable pageInfo = PageRequest.of(pageNo - 1,
+//                amount, Sort.by("name").descending() // 정렬 기준 필드명 (컬럼명(X))
+                amount, Sort.by(
+                        Sort.Order.desc("name"),
+                        Sort.Order.asc("city")
+                )
+        );
 
         //when
         Page<Student> students = pageRepository.findAll(pageInfo);
@@ -58,9 +65,52 @@ class StudentPageRepositoryTest {
         // 페이징이 완료된 총 학생 데이터 묶음
         List<Student> studentList = students.getContent();
 
+        // 총 페이지 수
+        int totalPages = students.getTotalPages();
+        long totalElements = students.getTotalElements();
+        boolean next = students.hasNext();
+        boolean prev = students.hasPrevious();
+
         //then
         System.out.println("\n\n\n");
+        System.out.println("totalPages = " + totalPages);
+        System.out.println("totalElements = " + totalElements);
+        System.out.println("next = " + next);
+        System.out.println("prev = " + prev);
         studentList.forEach(System.out::println);
+        System.out.println("\n\n\n");
+    }
+
+    @Test
+    @DisplayName("이름검색 + 페이징")
+    void testSearchAndPagination() {
+        //given
+        int pageNo = 3;
+        int size = 10;
+        Pageable pageinfo = PageRequest.of(pageNo, size);
+
+        //when
+        Page<Student> students = pageRepository.findByNameContaining("3", pageinfo);
+
+        int totalPages = students.getTotalPages();
+        long totalElements = students.getTotalElements();
+        boolean next = students.hasNext();
+        boolean prev = students.hasPrevious();
+
+        /*
+            페이징 처리 시에 버튼 알고리즘은 jpa에서 따로 제공하지 않기 때문에
+            버튼 배치 알고리즘을 수행할 클래스는 여전히 필요합니다.
+            제공되는 정보는 이전보다 많기 때문에, 좀 더 수월하게 처리가 가능합니다.
+        */
+
+        //then
+        System.out.println("\n\n\n");
+        System.out.println("totalPages = " + totalPages);
+        System.out.println("totalElements = " + totalElements);
+        System.out.println("next = " + next);
+        System.out.println("prev = " + prev);
+
+        students.getContent().forEach(System.out::println);
         System.out.println("\n\n\n");
     }
 }
