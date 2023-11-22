@@ -81,7 +81,9 @@ class DepartmentRepositoryTest {
         //newDept.getEmployees().add(foundEmp);
 
         employeeRepository.save(foundEmp);
-        employeeRepository.flush();
+        //employeeRepository.saveAndFlush(foundEmp);
+
+        //employeeRepository.flush();
         // 1번
         // 변경 감지(더티 체크) 후 변경된 내용을 DB에 즉시 반영하는 역할
         //entityManager.flush(); // DB로 밀어내기
